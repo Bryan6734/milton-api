@@ -1,7 +1,7 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
-import { InjectModel } from "@nestjs/mongoose";
-import { Model } from "mongoose";
-import { Student, StudentSchema } from "./student.model";
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { Student, StudentSchema } from './student.model';
 
 // The purpose of the service.ts file is to manage the behind-the-scenes CRUD functionality.
 // For example: inserting new products, deleting new products, etc.
@@ -11,10 +11,19 @@ export class StudentsService {
   private students: Student[] = [];
 
   constructor(
-    @InjectModel('Student') private readonly studentModel: Model<Student>
-  ){}
+    @InjectModel('Student') private readonly studentModel: Model<Student>,
+  ) {}
 
-  async insertStudent(first: string, last: string, res: string, year: number, adv: string, parents: Array<string>, cells: Array<string>, emails: Array<string>){
+  async insertStudent(
+    first: string,
+    last: string,
+    res: string,
+    year: number,
+    adv: string,
+    parents: Array<string>,
+    cells: Array<string>,
+    emails: Array<string>,
+  ) {
     const newStudent = new this.studentModel({
       first: first,
       last: last,
@@ -23,8 +32,8 @@ export class StudentsService {
       adv: adv,
       parents: parents,
       cells: cells,
-      emails: emails
-    })
+      emails: emails,
+    });
 
     // newStudent.save() is a method provided by Mongoose
     // Creates a new MongoDB query and returns a promise; await waits until we get a value
@@ -32,13 +41,13 @@ export class StudentsService {
     return result.id as string;
   }
 
-  async getStudents(){
+  async getStudents() {
     // .find() will retreive a document (or documents) of all students
     // .exec() will execute the query
     const students = await this.studentModel.find().exec();
 
     // Returns a list representation of the students from the studentModel document.
-    return students.map((student => ({
+    return students.map((student) => ({
       id: student.id,
       first: student.first,
       last: student.last,
@@ -47,14 +56,12 @@ export class StudentsService {
       adv: student.adv,
       parents: student.parents,
       cells: student.cells,
-      emails: student.emails
-    })));
+      emails: student.emails,
+    }));
   }
 
-  async getStudentById(studentId: string){
+  async getStudentById(studentId: string) {
     const student = await this.findStudent(studentId);
-
-    
 
     return {
       id: student.id,
@@ -65,9 +72,8 @@ export class StudentsService {
       adv: student.adv,
       parents: student.parents,
       cells: student.cells,
-      emails: student.emails
-    }
-
+      emails: student.emails,
+    };
   }
 
   async updateStudent(
@@ -79,10 +85,10 @@ export class StudentsService {
     adv: string,
     parents: Array<string>,
     cells: Array<string>,
-    emails: Array<string>
-  ){
-    const updatedStudent = await this.findStudent(studentId)
-    
+    emails: Array<string>,
+  ) {
+    const updatedStudent = await this.findStudent(studentId);
+
     if (first) {
       updatedStudent.first = first;
     }
@@ -90,50 +96,39 @@ export class StudentsService {
     if (last) {
       updatedStudent.last = last;
     }
-    if (res) {
-      updatedStudent.res = res;
-    }
 
-    if (year) {
-      updatedStudent.year = year;
-    }
-    if (adv) {
-      updatedStudent.adv = adv;
-    }
 
-    if (parents) {
-      updatedStudent.parents = parents;
-    }
-    if (cells) {
-      updatedStudent.cells = cells;
-    }
+    console.log(first)
+    console.log(updatedStudent)
 
-    if (emails) {
-      updatedStudent.emails = emails;
-    }
-  }
-
-  async getStudentByFirstName(firstName: string): Promise<Student[]> {
-
-    let student = await this.studentModel.find({"first": {$regex : firstName}});
-    return student;
+    updatedStudent.save();
 
   }
 
-  async getStudentByLastName(lastName: string) {
+  async getStudentsByFirstName(firstName: string): Promise<Student[]> {
+    return await this.studentModel.find({ first: { $regex: firstName } });
+  }
 
-    let student = await this.studentModel.find({"last": {$regex : lastName}});
-    return student;
-    
+  async getStudentsByLastName(lastName: string) {
+    return await this.studentModel.find({ last: { $regex: lastName } });
+  }
+
+  async getStudentsByAdvisor(advisor: string) {
+    return await this.studentModel.find({ adv: { $regex: advisor } });
+  }
+
+  async getStudentsByDorm(dorm: string) {
+    return await this.studentModel.find({ res: { $regex: dorm } });
   }
 
   async deleteStudent(studentId: string) {
-    const student = await this.studentModel.deleteOne({_id: studentId}).exec();
+    const student = await this.studentModel
+      .deleteOne({ _id: studentId })
+      .exec();
     if (student.deletedCount === 0) {
       throw new NotFoundException('Could not find student.');
     }
   }
-
 
   private async findStudent(id: string): Promise<Student> {
     let student;
@@ -141,16 +136,13 @@ export class StudentsService {
     try {
       student = await this.studentModel.findById(id);
     } catch (error) {
-      throw new NotFoundException("Could not find student.")
+      throw new NotFoundException('Could not find student.');
     }
 
-    if (!student){
-      throw new NotFoundException("Could not find student.")
+    if (!student) {
+      throw new NotFoundException('Could not find student.');
     }
 
-    return student; 
+    return student;
   }
-
-
-
 }
